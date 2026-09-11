@@ -1,209 +1,170 @@
-# BUG-001 — User Search Ignores Status Filter When Username Is Provided
+# BUG-001 — User Search Does Not Apply Status Filter When Combined With Username Filter
 
 ## Summary
 
-When an administrator searches for system users using both the **Username** and **Status** filters, the selected Status value is not applied.
-
-
-
-# BUG-001 — User Search Ignores Status Filter When Username Is Provided
-
-## Summary
-
-When an administrator searches for system users using both the **Username** and **Status** filters, the selected Status value is not applied. The search results include users with statuses other than the one selected.
+When an administrator searches for system users using both the **Username** and **Status** filters, the selected Status value is not applied correctly. The search results include users with statuses other than the one selected.
 
 ---
 
-## Bug Details
+# Bug Details
 
-| Field                   | Details                                                     |
-| ----------------------- | ----------------------------------------------------------- |
-| **Bug ID**              | BUG-001                                                     |
-| **Title**               | User Search Ignores Status Filter When Username Is Provided |
-| **Module**              | Admin                                                       |
-| **Feature**             | User Management — User Search / Filtering                   |
-| **Category**            | Functional                                                  |
-| **Environment**         | OrangeHRM Starter Demo                                      |
-| **Browser**             | Google Chrome 150.x                                         |
-| **Operating System**    | Windows 11 Pro 64-bit                                       |
-| **Application Version** | OrangeHRM Starter — Hosted Demo                             |
-| **Build Number**        | Not exposed in application UI                               |
-| **Severity**            | Medium                                                      |
-| **Priority**            | High                                                        |
-| **Reporter**            | QA Engineer                                                 |
-| **Assigned To**         | Unassigned                                                  |
-| **Status**              | New                                                         |
-| **Reproducibility**     | Reproducible                                                |
-| **Frequency**           | 5/5 attempts                                                |
-
----
-
-## Description
-
-The **System Users** search allows an administrator to filter user records using multiple criteria.
-
-When a Username value is entered together with **Status = Disabled**, the application returns matching usernames regardless of their account status.
-
-The Username criterion is applied successfully, but the Status criterion appears to be ignored when both filters are submitted together.
-
-This results in an inaccurate filtered result set and may lead administrators to incorrectly identify enabled accounts as disabled accounts.
+| Field | Details |
+|------|---------|
+| **Bug ID** | BUG-001 |
+| **Title** | User Search Does Not Apply Status Filter When Combined With Username Filter |
+| **Module** | Admin |
+| **Feature** | User Management → System Users Search |
+| **Category** | Functional |
+| **Environment** | OrangeHRM Demo |
+| **Application URL** | https://opensource-demo.orangehrmlive.com/ |
+| **Browser** | Google Chrome Version 150.x (64-bit) |
+| **Operating System** | Windows 11 Pro 64-bit |
+| **Application Version** | Hosted Demo |
+| **Build Number** | N/A |
+| **Severity** | Medium |
+| **Priority** | High |
+| **Reporter** | Javaria Ahmad |
+| **Assigned To** | TBD |
+| **Status** | New |
+| **Reproducibility** | Always |
+| **Frequency** | 5/5 Attempts |
 
 ---
 
-## Preconditions
+# Description
 
-1. User is logged in with an account that has access to the **Admin** module.
-2. User has permission to access **User Management**.
-3. At least two system users exist with similar usernames.
-4. One test user has **Enabled** status.
-5. One test user has **Disabled** status.
+The **System Users** page allows administrators to filter users using multiple search criteria.
 
----
+When both **Username** and **Status** filters are applied together, the application ignores the selected **Status** value and returns users that match only the Username criteria.
 
-## Test Data
+As a result, users with both **Enabled** and **Disabled** statuses are displayed even though the Status filter is set to **Disabled**.
 
-| Username                 | User Role | Status   |
-| ------------------------ | --------- | -------- |
-| qa.automation.active     | ESS       | Enabled  |
-| qa.automation.disabled   | ESS       | Disabled |
-| qa.automation.regression | ESS       | Enabled  |
-
-**Search criteria:**
-
-| Field    | Value         |
-| -------- | ------------- |
-| Username | qa.automation |
-| Status   | Disabled      |
+This produces inaccurate search results and makes it difficult for administrators to identify users based on account status.
 
 ---
 
-## Steps to Reproduce
+# Preconditions
+
+1. Login using an Administrator account.
+2. Navigate to **Admin → User Management → Users**.
+3. Ensure the following users exist:
+
+| Username | User Role | Status |
+|----------|-----------|---------|
+| john.smith | ESS | Enabled |
+| john.disabled | ESS | Disabled |
+| john.testing | ESS | Enabled |
+
+---
+
+# Test Data
+
+### Search Criteria
+
+| Field | Value |
+|------|-------|
+| Username | john |
+| Status | Disabled |
+
+---
+
+# Steps to Reproduce
 
 1. Launch the OrangeHRM application.
-2. Log in using a valid administrator account.
+2. Login using a valid Administrator account.
 3. Navigate to **Admin**.
-4. Open **User Management > Users**.
-5. Locate the System Users search/filter section.
-6. Enter `qa.automation` in the **Username** field.
-7. Select **Disabled** from the **Status** dropdown.
-8. Leave all other filters unchanged.
+4. Open **User Management → Users**.
+5. Locate the search section.
+6. Enter **john** into the Username field.
+7. Select **Disabled** from the Status dropdown.
+8. Leave all remaining filters unchanged.
 9. Click **Search**.
-10. Review the records displayed in the search results.
+10. Observe the returned search results.
 
 ---
 
-## Actual Result
+# Actual Result
 
-The search results contain users matching the Username criterion with both **Enabled** and **Disabled** statuses.
+The search returns all users matching the Username value regardless of the selected Status.
 
-Example:
+### Returned Results
 
-| Username                 | Status   |
-| ------------------------ | -------- |
-| qa.automation.active     | Enabled  |
-| qa.automation.disabled   | Disabled |
-| qa.automation.regression | Enabled  |
+| Username | Status |
+|----------|---------|
+| john.smith | Enabled ❌ |
+| john.disabled | Disabled ✅ |
+| john.testing | Enabled ❌ |
 
-The selected **Status = Disabled** filter is not reflected in the returned result set.
-
----
-
-## Expected Result
-
-The system should apply all populated search criteria together.
-
-When:
-
-* Username contains `qa.automation`
-* Status equals `Disabled`
-
-the results should contain only records matching both conditions.
-
-Expected result:
-
-| Username               | Status   |
-| ---------------------- | -------- |
-| qa.automation.disabled | Disabled |
-
-No **Enabled** user accounts should be displayed.
+The selected **Status = Disabled** filter is ignored.
 
 ---
 
-## Business Impact
+# Expected Result
 
-Administrators cannot reliably identify users based on account status when combining Username and Status filters.
+The system should apply both Username and Status filters together.
 
-This can cause:
+### Expected Results
 
-* Incorrect user-account reviews.
-* Additional manual verification effort.
-* Incorrect administrative decisions when enabling or disabling accounts.
-* Increased risk during user-access audits.
-* Difficulty identifying inactive or disabled accounts in environments containing large numbers of users.
+| Username | Status |
+|----------|---------|
+| john.disabled | Disabled |
 
-The issue has higher operational significance for organizations using User Management results during periodic access-control reviews.
+Only users matching **both** search criteria should be displayed.
 
 ---
 
-## Root Cause Analysis
+# Business Impact
 
-**Status:** Suspected — requires developer confirmation.
+This issue prevents administrators from accurately identifying users based on account status.
 
-The search criteria implementation may not be combining the Username and Status parameters correctly.
+Potential impacts include:
 
-Possible causes include:
-
-* The Status parameter is omitted from the search request when Username is populated.
-* The backend query applies only the Username condition.
-* Multiple criteria are not being combined using the expected logical `AND` condition.
-* The frontend Status value is not correctly mapped to the corresponding backend status identifier.
-
-Network request and backend query inspection are required to confirm the root cause.
+- Incorrect user account reviews.
+- Increased manual verification effort.
+- Incorrect administrative actions.
+- Difficulties during user-access audits.
+- Reduced confidence in search accuracy.
 
 ---
 
-## Suggested Fix
+# Possible Cause
 
-Update the User Management filtering logic so that all populated search criteria are submitted and evaluated together.
+The application appears to ignore the selected **Status** parameter when both Username and Status filters are submitted together.
 
-For this scenario, the resulting query should logically behave as:
-
-```text
-Username contains "qa.automation"
-AND
-Status = Disabled
-```
-
-The fix should also be validated against the following combinations:
-
-* Username only
-* Status only
-* Username + Status
-* Username + User Role
-* Username + Employee Name
-* Username + User Role + Status
-* All available filters populated
-* Reset followed by a new search
-
-Automated regression coverage should be added for multi-filter search combinations.
+Developer investigation is required to determine whether the issue originates from the frontend request or backend filtering logic.
 
 ---
 
-## Attachments
+# Suggested Fix
 
-| Attachment                              | Description                                                                |
-| --------------------------------------- | -------------------------------------------------------------------------- |
-| `BUG-001_user_search_status_filter.png` | Screenshot showing Status = Disabled with Enabled users present in results |
-| `BUG-001_user_search_results.png`       | Search result table containing mixed account statuses                      |
-| `BUG-001_user_search_request.har`       | Network request captured while submitting the combined filters             |
-| `BUG-001_user_search_response.json`     | API response returned for the affected search                              |
+Ensure all selected search criteria are submitted and evaluated together before returning search results.
+
+Regression testing should verify:
+
+- Username filter only
+- Status filter only
+- Username + Status
+- Username + User Role
+- Username + Employee Name
+- Username + User Role + Status
+- All available filters
+- Reset followed by a new search
 
 ---
 
-## Notes
+# Attachments
 
-* Issue reproduces consistently across repeated searches.
-* Status-only filtering should be verified separately to isolate whether the defect affects the Status control itself or only combined filtering.
-* The **Reset** action should also be tested to confirm that stale filter values are not retained between searches.
-* Cross-browser verification should be completed in Firefox and Microsoft Edge after the defect is confirmed.
-* API/network inspection is recommended before assigning the defect to determine whether the issue originates in the frontend request or backend filtering logic.
+| Attachment | Description |
+|------------|-------------|
+| BUG-001_User_Search_Status_Filter.png | Screenshot showing Status filter selected with incorrect results |
+| BUG-001_Search_Results.png | Search results containing Enabled and Disabled users |
+| BUG-001_Request.har | Network request captured during search |
+| BUG-001_Response.json | API response returned for the search request |
+
+---
+
+# Notes
+
+- Issue reproduced consistently in multiple executions.
+- Verify the fix across Chrome, Firefox, and Microsoft Edge.
+- Perform regression testing for all search filter combinations after the issue is resolved.
